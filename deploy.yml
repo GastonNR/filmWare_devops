@@ -1,0 +1,33 @@
+name: Deploy en blob de Azure
+
+on:
+  repository_dispatch:
+    types: [trigger-deploy]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  
+    steps:
+      # 1. Clonar Repo A
+      - name: Checkout Repo A
+        uses: actions/checkout@v4
+        with:
+          repository: floor096/filmWare_frontend
+          token: ${{ secrets.REPO_A_PAT }}
+          path: frontend-files
+
+      # 2. Login a Azure
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 3. Subir archivos a Blob Storage
+      - name: Subir archivos a Blob Storage
+        run: |
+          az storage blob upload-batch \
+            --account-name paginaestaticafilmware \
+            --destination '$web' \
+            --source ./frontend-files \
+            --auth-mode login 
+
